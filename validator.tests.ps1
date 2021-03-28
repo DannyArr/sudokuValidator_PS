@@ -104,7 +104,7 @@ Describe "Validator tests"{
 
         it "Sequence should have expected digits"{
             [array]$expectedArray = @(1,2,3,4,5,6,7,8,9)
-            $result = $grid0.getNumberArray(9)
+            $result = $grid0.makeNumberArray(9)
 
             $comparison = Compare-Object $result $expectedArray 
             $comparison | Should -BeNullOrEmpty
