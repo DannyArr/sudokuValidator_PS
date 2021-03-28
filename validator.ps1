@@ -15,6 +15,10 @@ class SudokuGrid {
     SudokuGrid($Solution){
         $this.Rows = $this.getRows($Solution)
         $this.checkSequence($this.Rows, "rows")
+
+        $this.Columns = $this.getColumns($Solution) #todo
+
+        $this.SubGrids = $this.getSubgrids($Solution) #todo
     }
 
 
@@ -33,7 +37,19 @@ class SudokuGrid {
     }
 
 
-    hidden [array]getNumberArray([int]$Length){
+    [array]getColumns($Solution){
+
+        return @()
+    }
+
+
+    [array]getSubgrids($Solution){
+
+        return @()
+    }
+
+
+    hidden [array]makeNumberArray([int]$Length){
         $result = @()
         for ($i = 1; $i -lt $Length + 1; $i++) {
             [array]$result += $i
@@ -46,7 +62,7 @@ class SudokuGrid {
     [void]checkSequence([string[]]$Sequences, [SequenceType]$SequenceType){
         
         [bool]$isValid = $true
-        $targetDigits = $this.getNumberArray($Sequences[0].Length)
+        $targetDigits = $this.makeNumberArray($Sequences[0].Length)
 
         foreach($sequence in $Sequences){
 

@@ -124,4 +124,20 @@ Describe "Validator tests"{
         
     }
 
+    Context "Column gets" {
+
+        It "Should do"{
+            $false | Should -BeTrue
+        }
+
+    }
+
+    Context "Subgrid gets" {
+
+        It "Should do"{
+            $false | Should -BeTrue
+        }
+
+    }
+
 }
