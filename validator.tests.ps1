@@ -4,64 +4,74 @@ BeforeDiscovery{
     $pesterConfig.Output.Verbosity = "Detailed"
     $PesterPreference = $pesterConfig
 
+    . "$PSScriptRoot\validator.ps1"
+
     $testCases = @(
-        [PSCustomObject]@{
+        @{
             key = 0
             input = "123456789456789123789123456912345678345678912678912345891234567234567891567891234"
             expectedResult = $true
         },
-        [PSCustomObject]@{
+        @{
             key = 1
             input = "435269781682571493197834562826195347374682915951743628519326874248957136763418259"
             expectedResult = $true
         },
-        [PSCustomObject]@{
+        @{
             key = 2
             input = "432269781685571493197834562826195347374682915951743628519326874248957136763418259"
             expectedResult = $false
         },
-        [PSCustomObject]@{
+        @{
             key = 3
             input = "435269781682571493197834562826195347374682915159743628519326874248957136763418259"
             expectedResult = $false
         },
-        [PSCustomObject]@{
+        @{
             key = 4
             input = "435269781682571493897134562126895347374682915951743628519326874248957136763418259"
             expectedResult = $false
         },
-        [PSCustomObject]@{
+        @{
             key = 5
             input = "596142537614358248569412536195368416593634821595321456136486525412368492368741563"
             expectedResult = $false
         },
-        [PSCustomObject]@{
+        @{
             key = 6
             input = "133456779456779133779133456913345677345677913677913345791334567334567791567791334"
             expectedResult = $false
         }
 
     )
+
+    $grids = [ordered]@{}
+    foreach($testCase in $testCases){
+
+        $gridResult = [SudokuGrid]::new($testCases[$testCase.key].input)
+        
+        $grids.Add(
+            $testCase.key, [PSCustomObject]@{
+                grid = $gridResult
+                finalResult = $gridResult.SolutionIsValid
+                expectedResult = $testCase.expectedResult
+            }
+        )
+
+    }
+
 }
 
-BeforeAll{
-    . "$PSScriptRoot\validator.ps1"
-
-    $grid0 = [SudokuGrid]::new($testCases[0].input)
-    $grid1 = [SudokuGrid]::new($testCases[1].input)
-    $grid2 = [SudokuGrid]::new($testCases[2].input)
-}
-
-Describe "Validator tests"{
+Describe "Validator class tests"{
 
     Context "Row Gets" {
 
         It "Rows should return a string array" {
-            $grid0.rows.GetType().FullName | Should -Be "System.String[]"
+            $grids[0].grid.rows.GetType().FullName | Should -Be "System.String[]"
         }
 
         It "Rows array should contain 9 items" {
-            $grid0.rows.Length | Should -Be 9
+            $grids[0].grid.rows.Length | Should -Be 9
         }
 
         It "Grid[0] rows array should contain items of expected values" {
@@ -78,7 +88,7 @@ Describe "Validator tests"{
                 "567891234"
             )
 
-            $comparison = Compare-Object $grid0.rows $expectedRows
+            $comparison = Compare-Object $grids[0].grid.rows $expectedRows
             $comparison | Should -BeNullOrEmpty
 
         }
@@ -97,45 +107,21 @@ Describe "Validator tests"{
                 "763418259"
             )
 
-            $comparison = Compare-Object $grid1.rows $expectedRows
+            $comparison = Compare-Object $grids[1].grid.rows $expectedRows
             $comparison | Should -BeNullOrEmpty
 
         }
 
-    }
-
-    Context "Sequence checks" {
-
-        it "Sequence should have expected digits"{
-            [array]$expectedArray = @(1,2,3,4,5,6,7,8,9)
-            $result = $grid0.makeNumberArray(9)
-
-            $comparison = Compare-Object $result $expectedArray 
-            $comparison | Should -BeNullOrEmpty
-        }
-        
-    }
-
-    Context "Row checks" {
-
-        It "Grid[0] rows should validate as true"{
-            $grid0.RowsAreValid | Should -BeTrue
-        }
-
-        It "Grid[2] rows should validate as false"{
-            $grid2.RowsAreValid | Should -BeFalse
-        }
-        
     }
 
     Context "Column gets" {
 
         It "Columns should return a string array" {
-            $grid0.Columns.GetType().FullName | Should -Be "System.String[]"
+            $grids[0].grid.Columns.GetType().FullName | Should -Be "System.String[]"
         }
 
         It "Columns array should contain 9 items" {
-            $grid0.Columns.Length | Should -Be 9
+            $grids[0].grid.Columns.Length | Should -Be 9
         }
 
         It "Grid[0] columns array should contain items of expected values" {
@@ -152,7 +138,7 @@ Describe "Validator tests"{
                 "936825714"
             )
 
-            $comparison = Compare-Object $grid0.Columns $expectedColumns
+            $comparison = Compare-Object $grids[0].grid.Columns $expectedColumns
             $comparison | Should -BeNullOrEmpty
 
         }
@@ -171,7 +157,7 @@ Describe "Validator tests"{
                 "132758469"
             )
 
-            $comparison = Compare-Object $grid1.Columns $expectedColumns
+            $comparison = Compare-Object $grids[1].grid.Columns $expectedColumns
             $comparison | Should -BeNullOrEmpty
 
         }
@@ -181,11 +167,11 @@ Describe "Validator tests"{
     Context "Subgrid gets" {
 
         It "Subgrid should return a string array" {
-            $grid0.Subgrids.GetType().FullName | Should -Be "System.String[]"
+            $grids[0].grid.Subgrids.GetType().FullName | Should -Be "System.String[]"
         }
 
         It "Subgrids array should contain 9 items" {
-            $grid0.Subgrids.Length | Should -Be 9
+            $grids[0].grid.Subgrids.Length | Should -Be 9
         }
 
         It "Grid[0] subgrids array should contain items of expected values" {
@@ -202,7 +188,7 @@ Describe "Validator tests"{
                 "567891234"
             )
 
-            $comparison = Compare-Object $grid0.Subgrids $expectedSubgrids
+            $comparison = Compare-Object $grids[0].grid.Subgrids $expectedSubgrids
             $comparison | Should -BeNullOrEmpty
 
         }
@@ -221,13 +207,89 @@ Describe "Validator tests"{
                 "874136259"
             )
 
-            $comparison = Compare-Object $grid1.Subgrids $expectedSubgrids
+            $comparison = Compare-Object $grids[1].grid.Subgrids $expectedSubgrids
             $comparison | Should -BeNullOrEmpty
 
         }
 
     }
 
+    Context "Helper checks" {
+
+        it "makeNumberArray should generate array of 1..9"{
+            [array]$expectedArray = @(1,2,3,4,5,6,7,8,9)
+            $result = $grids[0].grid.makeNumberArray(9)
+
+            $comparison = Compare-Object $result $expectedArray 
+            $comparison | Should -BeNullOrEmpty
+        }
+        
+    }
+
+    Context "Row checks" {
+
+        It "Grid[0] rows should validate as true"{
+            $grids[0].grid.RowsAreValid | Should -BeTrue
+        }
+
+        It "Grid[2] rows should validate as false"{
+            $grids[2].grid.RowsAreValid | Should -BeFalse
+        }
+        
+    }
+
+    Context "Column checks" {
+
+        It "Grid[0] columns should validate as true"{
+            $grids[0].grid.ColumnsAreValid | Should -BeTrue
+        }
+
+        It "Grid[3] columns should validate as false"{
+            $grids[3].grid.ColumnsAreValid | Should -BeFalse
+        }
+        
+    }
+
+    Context "Subgrid checks" {
+
+        It "Grid[0] subgrid should validate as true"{
+            $grids[0].grid.SubgridsAreValid | Should -BeTrue
+        }
+
+        It "Grid[4] subgrid should validate as false"{
+            $grids[4].grid.SubgridsAreValid | Should -BeFalse
+        }
+        
+    }
+
 }
 
+Describe "Test-Sudoku function"{
+    
+    Context "Without pipeline" {
+        It "Test case <key+1> result should be <expectedResult>." -TestCases $testCases{
+            $grid = Test-Sudoku -Solution $_.input
+            $grid.SolutionIsValid | Should -Be $expectedResult
+        }
+    }
 
+    Context "With pipeline" {
+        It "Test case <key+1> result should be <expectedResult>." {
+            $grids = $testCases.input | Test-Sudoku
+
+            
+            foreach($testCase in $testCases){
+                $grid = $grids | Where-Object Solution -eq $testCase.input
+                if($grid.SolutionIsValid -eq $testCase.expectedResult){
+                    $passTest = $true
+                }
+                else{
+                    $passTest = $false
+                    break
+                }
+            }
+            $passTest | Should -BeTrue
+        }
+    }
+
+}

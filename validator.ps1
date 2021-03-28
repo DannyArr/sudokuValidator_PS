@@ -6,23 +6,40 @@ enum SequenceType{
 }
 
 class SudokuGrid {
+    [string]$Solution
     [array]$Rows
-    [bool]$RowsAreValid
     [array]$Columns
     [array]$Subgrids
+    [bool]$RowsAreValid
+    [bool]$ColumnsAreValid
+    [bool]$SubgridsAreValid
+    [bool]$SolutionIsValid
 
 
     SudokuGrid($Solution){
+        $this.Solution = $Solution
         $this.Rows = $this.getRows($Solution)
+        $this.Columns = $this.getColumns($Solution)
+        $this.SubGrids = $this.getSubgrids($Solution)
+
         $this.checkSequence($this.Rows, "rows")
+        $this.checkSequence($this.Columns, "columns")
+        $this.checkSequence($this.Subgrids, "subgrids")
 
-        $this.Columns = $this.getColumns($Solution) #todo
+        $allValid = $false
+        if(
+            $this.RowsAreValid -eq $true `
+            -and $this.ColumnsAreValid -eq $true `
+            -and $this.SubgridsAreValid -eq $true `
+        ){
+            $allValid = $true
+        }
+        $this.SolutionIsValid = $allValid
 
-        $this.SubGrids = $this.getSubgrids($Solution) #todo
     }
 
 
-    [array]getRows($Solution){
+    [string[]]getRows($Solution){
 
         [string[]]$output = @()
         [string]$shrink = $Solution
@@ -71,26 +88,45 @@ class SudokuGrid {
     }
 
 
-    [array]getSubgrids($Solution){
+    [string[]]getSubgrids($Solution){
 
         $stringLength = [math]::Sqrt($Solution.Length)
-        $gridLength = [math]::Sqrt($stringLength)
+        $subGridLength = [math]::Sqrt($stringLength)
 
+        [hashtable]$subgridCollection = @{}
+        $shrink = $Solution
 
-        [string[]]$output = @(
-            "123456789",
-            "456789123",
-            "789123456",
-            "912345678",
-            "345678912",
-            "678912345",
-            "891234567",
-            "234567891",
-            "567891234"
-        )
+        [int]$subgridId = 1
+        [int]$rowId = 0
+        do {
+
+            $rowId++
+            for ($i = $subgridId; $i -le ($subGridLength + $subgridId - 1); $i++) {
+
+                if($null -eq $subgridCollection[$i]){
+                    $subgridCollection.Add($i, "")
+                }  
+
+                $subgridCollection[$i] += $shrink.Substring(0,3)
+                $shrink = $shrink.Substring(3)
+
+            }
+
+            if($rowId -and $rowId % $subGridLength -eq 0){
+                $subgridId = $subgridId + $subGridLength
+            }
+            
+        } while ($shrink.Length -gt 0)
+
+        [string[]]$output = @()
+        $subgridCollection.GetEnumerator() | 
+            Sort-Object -Property Name |
+            ForEach-Object {
+                $output += ,$_.value
+            }
+
         return $output
     }
-
 
 
     hidden [array]makeNumberArray([int]$Length){
@@ -128,11 +164,44 @@ class SudokuGrid {
         switch ($SequenceType){
             "rows" {$this.RowsAreValid = $isValid}
             "columns" {$this.ColumnsAreValid = $isValid}
-            "subgrid" {$this.SubgridsAreValid = $isValid}
+            "subgrids" {$this.SubgridsAreValid = $isValid}
             default {$null}
         }
         
     }    
+    
+}
+
+
+function Test-Sudoku{
+
+    [cmdletbinding()]
+    param(
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+        [string]$Solution
+    )
+
+    begin{
+        [SudokuGrid[]]$output = @()
+    }
+
+    process{
+        Write-Verbose "Checking solution '$Solution'"
+
+        $grid = [SudokuGrid]::new($Solution)
+        $output += $grid
+
+        $message = switch($grid.SolutionIsValid){
+            $true {"Solution is correct"}
+            $false {"Solution is wrong"}
+        }
+        Write-Verbose $message
+    }
+
+    end{
+        return $output
+    }
+
     
 }
 
