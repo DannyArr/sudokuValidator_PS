@@ -1,5 +1,9 @@
 BeforeDiscovery{
 
+    $pesterConfig = [PesterConfiguration]::Default
+    $pesterConfig.Output.Verbosity = "Detailed"
+    $PesterPreference = $pesterConfig
+
     $testCases = @(
         [PSCustomObject]@{
             key = 0
@@ -52,8 +56,8 @@ Describe "Validator tests"{
 
     Context "Row Gets" {
 
-        It "Rows should return an array" {
-            $grid0.rows.GetType().FullName | Should -Be "System.Object[]"
+        It "Rows should return a string array" {
+            $grid0.rows.GetType().FullName | Should -Be "System.String[]"
         }
 
         It "Rows array should contain 9 items" {
@@ -126,18 +130,104 @@ Describe "Validator tests"{
 
     Context "Column gets" {
 
-        It "Should do"{
-            $false | Should -BeTrue
+        It "Columns should return a string array" {
+            $grid0.Columns.GetType().FullName | Should -Be "System.String[]"
+        }
+
+        It "Columns array should contain 9 items" {
+            $grid0.Columns.Length | Should -Be 9
+        }
+
+        It "Grid[0] columns array should contain items of expected values" {
+
+            $expectedColumns = @(
+                "147936825",
+                "258147936",
+                "369258147",
+                "471369258",
+                "582471369",
+                "693582471",
+                "714693582",
+                "825714693",
+                "936825714"
+            )
+
+            $comparison = Compare-Object $grid0.Columns $expectedColumns
+            $comparison | Should -BeNullOrEmpty
+
+        }
+
+        It "Grid[1] columns array should contain items of expected values" {
+
+            $expectedColumns = @(
+                "461839527",
+                "389275146",
+                "527641983",
+                "258167394",
+                "673984251",
+                "914523678",
+                "745396812",
+                "896412735",
+                "132758469"
+            )
+
+            $comparison = Compare-Object $grid1.Columns $expectedColumns
+            $comparison | Should -BeNullOrEmpty
+
         }
 
     }
 
     Context "Subgrid gets" {
 
-        It "Should do"{
-            $false | Should -BeTrue
+        It "Subgrid should return a string array" {
+            $grid0.Subgrids.GetType().FullName | Should -Be "System.String[]"
+        }
+
+        It "Subgrids array should contain 9 items" {
+            $grid0.Subgrids.Length | Should -Be 9
+        }
+
+        It "Grid[0] subgrids array should contain items of expected values" {
+
+            $expectedSubgrids = @(
+                "123456789",
+                "456789123",
+                "789123456",
+                "912345678",
+                "345678912",
+                "678912345",
+                "891234567",
+                "234567891",
+                "567891234"
+            )
+
+            $comparison = Compare-Object $grid0.Subgrids $expectedSubgrids
+            $comparison | Should -BeNullOrEmpty
+
+        }
+
+        It "Grid[1] subgrids array should contain items of expected values" {
+
+            $expectedSubgrids = @(
+                "435682197",
+                "269571834",
+                "781493562",
+                "826374951",
+                "195682743",
+                "347915628",
+                "519248763",
+                "326957418",
+                "874136259"
+            )
+
+            $comparison = Compare-Object $grid1.Subgrids $expectedSubgrids
+            $comparison | Should -BeNullOrEmpty
+
         }
 
     }
 
 }
+
+

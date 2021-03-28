@@ -24,7 +24,7 @@ class SudokuGrid {
 
     [array]getRows($Solution){
 
-        [array]$output = @()
+        [string[]]$output = @()
         [string]$shrink = $Solution
         do {
             $output += $shrink.Substring(0,9)
@@ -37,16 +37,60 @@ class SudokuGrid {
     }
 
 
-    [array]getColumns($Solution){
+    [string[]]getColumns($Solution){
 
-        return @()
+        [int]$totalColumns = [math]::Sqrt($Solution.Length)
+        [hashtable]$columnsDict = @{}
+        $shrink = $Solution
+
+        [int]$columnOrdinal = 1
+        do {
+
+            if($null -eq $columnsDict[$columnOrdinal]){
+                $columnsDict.Add($columnOrdinal, "")
+            }          
+
+            $columnsDict[$columnOrdinal] += $shrink.Substring(0,1)
+            $shrink = $shrink.Substring(1)
+            
+            $columnOrdinal++
+            if($columnOrdinal -gt $totalColumns){
+                $columnOrdinal = 1
+            }
+
+        } while ($shrink.Length -gt 0)
+
+        [string[]]$output = @()
+        $columnsDict.GetEnumerator() | 
+            Sort-Object -Property Name |
+            ForEach-Object {
+                $output += ,$_.value
+            }
+
+        return $output
     }
 
 
     [array]getSubgrids($Solution){
 
-        return @()
+        $stringLength = [math]::Sqrt($Solution.Length)
+        $gridLength = [math]::Sqrt($stringLength)
+
+
+        [string[]]$output = @(
+            "123456789",
+            "456789123",
+            "789123456",
+            "912345678",
+            "345678912",
+            "678912345",
+            "891234567",
+            "234567891",
+            "567891234"
+        )
+        return $output
     }
+
 
 
     hidden [array]makeNumberArray([int]$Length){
